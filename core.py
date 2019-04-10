@@ -69,16 +69,40 @@ def analysis(code):
     L1 = code[1:3]
     APDU_len = lenth(L1)
     APDU = code[6:6 + APDU_len]
+    global A1, A2
     A1 = list2str(APDU[1:3])
     A2 = list2str(APDU[3:5])
-    DAT_rec = list2str(APDU[6:]).replace(' ', '')
-    DAT_sign = '027300000100'
-    if DAT_sign == DAT_rec:
-        A3 = '66'
-        L_C = '68 32 00 32 00 68 40'
-        DAT_ret = '006300000100'
-        re_message = L_C + A1 + A2 + A3 + DAT_ret.replace(' ', '')
-        cs = CS(strto0x(makelist(re_message)))
-        re_message = (re_message + cs + '16').replace(' ', '')
-        return re_message
+    return AFN(A1, A2, APDU[6:])
 
+
+def AFN(A1, A2, data):
+    if data[0] == '02':
+        print('链路接口检测')
+        if list2str(data[2:6]) == '00000100' or list2str(data[2:6]) == '00000400':
+            seq = hex(int('0110' + SEQ(data[1]), 2))[2:].zfill(2)
+            print('seq', seq)
+            re_data = '00' + seq + '00000100'
+            L_ = '68 32 00 32 00 68'
+            A3 = '66'
+            C = '40'
+            re_message = C + A1 + A2 + A3 + re_data.replace(' ', '')
+            cs = CS(strto0x(makelist(re_message)))
+            re_message = (L_ + re_message + cs + '16').replace(' ', '')
+            return 0, re_message
+
+    if data[0] == '0c':
+        print('请求一类数据')
+        if list2str(data[2:6]) == '000080fe':
+            x = 'F2040 \n' + '信号强度:' + data[6] + '\n电话号码:' + list2str(data[7:13]) + '\nICCID:' + list2str(data[13:])
+            print(x)
+            return 1, x
+
+
+def SEQ(num):
+    bin_ = bin(int(num, 16))[2:].zfill(8)
+    PSEQ = bin_[-4:]
+    return PSEQ
+
+
+A1 = ''
+A2 = ''

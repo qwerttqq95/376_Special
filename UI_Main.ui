@@ -234,7 +234,7 @@
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>一类数据</string>
+     <string>一类数据扩展</string>
     </property>
     <addaction name="actionF2040"/>
    </widget>
@@ -242,6 +242,18 @@
     <property name="title">
      <string>测试</string>
     </property>
+    <widget class="QMenu" name="menu_3">
+     <property name="title">
+      <string>数据抄读</string>
+     </property>
+     <addaction name="actionYi"/>
+     <addaction name="actionEr"/>
+    </widget>
+    <addaction name="menu_3"/>
+    <addaction name="actionRen"/>
+    <addaction name="actionS"/>
+    <addaction name="separator"/>
+    <addaction name="actionZ"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -249,7 +261,32 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionF2040">
    <property name="text">
-    <string>F2040</string>
+    <string>F2040 信号强度</string>
+   </property>
+  </action>
+  <action name="actionYi">
+   <property name="text">
+    <string>一类数据</string>
+   </property>
+  </action>
+  <action name="actionEr">
+   <property name="text">
+    <string>二类数据</string>
+   </property>
+  </action>
+  <action name="actionRen">
+   <property name="text">
+    <string>任务上报</string>
+   </property>
+  </action>
+  <action name="actionS">
+   <property name="text">
+    <string>数据转发</string>
+   </property>
+  </action>
+  <action name="actionZ">
+   <property name="text">
+    <string>自定义测试项</string>
    </property>
   </action>
  </widget>
