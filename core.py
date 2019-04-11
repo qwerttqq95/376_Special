@@ -59,6 +59,24 @@ def CS(list):
     return sum
 
 
+def F2040():
+    global A1, A2
+    C = '4b'
+    Data = '66 0c 75 00 00 80 fe'
+    re_message = C + A1 + A2 + Data.replace(' ', '')
+    cs = CS(strto0x(makelist(re_message)))
+    return '683200320068' + re_message + cs + '16'
+
+
+def data_init():
+    global A1,A2
+    C = '41'
+    Data = '66 01 77 00 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00'
+    re_message = C + A1 + A2 + Data.replace(' ', '')
+    cs = CS(strto0x(makelist(re_message)))
+    return '687200720068' + re_message + cs + '16'
+
+
 def analysis(code):
     code = makelist(code)
     while 1:
@@ -76,6 +94,14 @@ def analysis(code):
 
 
 def AFN(A1, A2, data):
+    if data[0] == '00':
+        print('确认/否认')
+        if list2str(data[2:6]) == '00000100':
+            print('终端确认所发请求')
+            return 1, '终端确认所发请求'
+        else:
+            print('Others')
+
     if data[0] == '02':
         print('链路接口检测')
         if list2str(data[2:6]) == '00000100' or list2str(data[2:6]) == '00000400':

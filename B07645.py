@@ -1,23 +1,26 @@
 '''
     模拟表程序
 '''
-import Comm, binascii, re, serial, time, datetime,traceback
+import Comm, binascii, re, serial, time, datetime, traceback
 
 
 def Electricity_meter_date_and_week_and_time(data):
     if data == '@GetDateWeek@':
         time1_str = datetime.datetime.now().strftime('%C%m%d%w')
+        print('time1_str:', time1_str)
         if len(time1_str) == 7:
             time1_str = time1_str[0:6] + '0' + time1_str[-1]
         return time1_str
     elif data == '@GetTime@':
         time2_str = datetime.datetime.now().strftime('%T').replace(':', '')
+        print('time2_str:', time2_str)
         return time2_str
     elif data == '@freezeTime@':
         time3_str = datetime.datetime.now().strftime('%M%H%d%m%y').replace(':', '')
+        print('time3_str:',time3_str)
         return time3_str
     else:
-        print('Electricity_meter_date_and_week_and_time not found!',data)
+        print('Electricity_meter_date_and_week_and_time not found!', data)
 
 
 def conctrlcode(code):
@@ -70,7 +73,7 @@ def readdata(OI):
     while 1:
         text = f.readline()
         if text == '':
-            print('ERROR ON read_data',OI.lower())
+            print('ERROR ON read_data', OI.lower())
             break
         text1 = re.findall(OI.lower(), text)
         if not text1:
@@ -79,7 +82,7 @@ def readdata(OI):
             if text1[0] == OI.lower():
                 text = text.split(' ')
                 data = text[-1][0:-1]
-                if re.findall(',',data) is not None:
+                if re.findall(',', data) is not None:
                     data = data.split(',')
                     data = Comm.list2str(data)
                 name = text[-2]
@@ -107,7 +110,7 @@ def plus33(message):
                 returnvalue = Comm.makelist(message[i])
                 i += 1
                 while returnvalue:
-                    new_list.append(hex(int(returnvalue.pop(), 16) + 51)[2:])
+                    new_list.append(hex(int(returnvalue.pop(), 16) + 51)[-2:])
                 value_str = Comm.list2str(new_list)
                 newstr = newstr + value_str
                 return newstr
@@ -117,7 +120,7 @@ def plus33(message):
             new_list = []
             while lenth:
                 lenth -= 1
-                new_list.append(hex(int(message.pop(), 16) + 51)[2:])
+                new_list.append(hex(int(message.pop(), 16) + 51)[-2:])
             newstr = Comm.list2str(new_list)
             return newstr
 
@@ -156,12 +159,20 @@ def deal_receive(message):
     a = readdata(OI)
     if not a:
         print('OI 无法解析')
+        L = 'd10135'
+        text = '68' + Comm.list2str(address) + '68' + L
+        cs = CS(strto0x(Comm.makelist(text)), None)
+        text = text + cs + '16'
+        print('Sending:', Comm.makestr(text))
+        # t.write(binascii.a2b_hex(text))
     else:
         returnstr = plus33(a[0])  # Date!!!!
         L = hex(4 + len(Comm.makelist(returnstr)))[2:].zfill(2)
         text = returnframe(Comm.list2str(address), reconctrlcode, L, D, returnstr)
         print('Sending:', Comm.makestr(text))
-        t.write(binascii.a2b_hex(text))
+        # t.write(binascii.a2b_hex(text))
+    return text
+
 
 def check(temp):
     global temp_list
@@ -175,11 +186,11 @@ def check(temp):
                     ctrlcode = temp_list[8]
                     lenth = temp_list[9]
                     data_sign = temp_list[10:14]
-                    left = int(lenth,16) - 4
+                    left = int(lenth, 16) - 4
                     if left > 0:
-                        exter = temp_list[14:14+left]
-                        total = 14+ left +2
-                        message = temp_list[0:16+left]
+                        exter = temp_list[14:14 + left]
+                        total = 14 + left + 2
+                        message = temp_list[0:16 + left]
                     else:
                         message = temp_list[0:16]
                     return message
@@ -194,6 +205,7 @@ def clear_templist():
     global temp_list
     temp_list = []
 
+
 temp_list = []
 
 if __name__ == '__main__':
@@ -206,6 +218,7 @@ if __name__ == '__main__':
         if data == '':
             continue
         else:
+            print('data:',data)
             message = check(data)
             if message != 1 and message is not None:
                 print('Received: ', message)
@@ -214,5 +227,3 @@ if __name__ == '__main__':
                 data = ''
             else:
                 continue
-
-

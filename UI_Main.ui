@@ -255,8 +255,15 @@
     <addaction name="separator"/>
     <addaction name="actionZ"/>
    </widget>
+   <widget class="QMenu" name="menuFu">
+    <property name="title">
+     <string>复位</string>
+    </property>
+    <addaction name="actionChushi"/>
+   </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
+   <addaction name="menuFu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionF2040">
@@ -266,7 +273,7 @@
   </action>
   <action name="actionYi">
    <property name="text">
-    <string>一类数据</string>
+    <string>一类数据(F25 F33 F34)</string>
    </property>
   </action>
   <action name="actionEr">
@@ -287,6 +294,16 @@
   <action name="actionZ">
    <property name="text">
     <string>自定义测试项</string>
+   </property>
+  </action>
+  <action name="actionF31">
+   <property name="text">
+    <string>F31 对时命令</string>
+   </property>
+  </action>
+  <action name="actionChushi">
+   <property name="text">
+    <string>数据初始化</string>
    </property>
   </action>
  </widget>
