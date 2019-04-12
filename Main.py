@@ -39,20 +39,64 @@ class MainWindow(QMainWindow):
         self.ui.pushButton.clicked.connect(lambda: threading.Thread(target=self.start_to_connect_, daemon=True).start())
         self.ui.actionF2040.triggered.connect(self.F2040)
         self.ui.menubar.setDisabled(1)
-        self.ui.actionYi.triggered.connect(self.Get_data_1)
+        self.ui.actionYi.triggered.connect(lambda: threading.Thread(target=self.Get_data_1, daemon=True).start())
         self.ui.actionChushi.triggered.connect(self.data_init)
 
     def data_init(self):
         message = core.data_init()
-        self.tctimeClient.send(binascii.a2b_hex(message.replace(' ', '')))
+        self.tctimeClient.send(binascii.a2b_hex(message))
         self._signal_text.emit('Send message:' + Comm.makestr(message))
         print('Send message:', Comm.makestr(message))
 
+
     def Get_data_1(self):  # 一类数据测试
+        self.ui.menu_3.setDisabled(1)
         self._signal_text.emit('开始一类数据测试...')
         print('开始一类数据测试')
+
+        self._signal_text.emit('设置测量点')
+        print('设置测量点')
+        message = core.set_test_point()
+        self.tctimeClient.send(binascii.a2b_hex(message[0].replace(' ', '')))
+        self._signal_text.emit('Send message:' + Comm.makestr(message[0]))
+        print('Send message:', Comm.makestr(message[0]))
+        time.sleep(2)
+
+        self._signal_text.emit('下表')
+        print('下表')
+        C = '4a'
+        Data = '66 04 75 00 00 02 01 01 00 01 00 01 00 62 1E 01 00 00 00 00 00 00 00 00 00 00 00 04 09 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00'
+        re_message = C + message[1] + message[2] + Data.replace(' ', '')
+        cs = core.CS(core.strto0x(core.makelist(re_message)))
+        text = '68E600E60068'.lower() + re_message + cs + '16'
+        self.tctimeClient.send(binascii.a2b_hex(text.replace(' ', '')))
+        self._signal_text.emit('Send message:' + Comm.makestr(text))
+        print('Send message:', Comm.makestr(text))
+        time.sleep(2)
+
+        self._signal_text.emit('数据初始化')
+        print('数据初始化')
+        message_ = core.data_init()
+        self.tctimeClient.send(binascii.a2b_hex(message_))
+        self._signal_text.emit('Send message:' + Comm.makestr(message_))
+        print('Send message:', Comm.makestr(message_))
         self.meter = threading.Thread(target=self.Meter645, daemon=True)
         self.meter.start()
+        time.sleep(265)
+
+        self._signal_text.emit('读取一类数据F25')
+        print('读取一类数据F25')
+        C = '4b'
+        Data = '66 0C 75 01 01 01 03'
+        re_message = C + message[1] + message[2] + Data.replace(' ', '')
+        cs = core.CS(core.strto0x(core.makelist(re_message)))
+        text = '683200320068'.lower() + re_message + cs + '16'
+        self.tctimeClient.send(binascii.a2b_hex(text.replace(' ', '')))
+        self._signal_text.emit('Send message:' + Comm.makestr(text))
+        print('Send message:', Comm.makestr(text))
+        self.ui.menu_3.setDisabled(0)
+
+
 
     def F2040(self):
         message = core.F2040()
@@ -61,15 +105,15 @@ class MainWindow(QMainWindow):
         print('Send message:', Comm.makestr(message))
 
     def Meter645(self):
-        time.sleep(5)
+        time.sleep(10)
         self.serial = serial.Serial()
         self.serial.port = self.ui.comboBox_4.currentText()
         self.serial.baudrate = int(self.ui.comboBox_5.currentText())
         self.serial.parity = self.ui.comboBox_6.currentText()
         self.serial.timeout = 1
         self.serial.open()
-        times = 30
-        self._signal_warm.emit((2, '打开模拟表等待300s'))
+        times = 250
+        self._signal_warm.emit((2, '打开模拟表等待250s'))
         while times:
             data = ''
             time.sleep(1)
@@ -138,7 +182,7 @@ class MainWindow(QMainWindow):
                             if message[0] == 0:
                                 print('Send message:', Comm.makestr(message[1]))
                                 self._signal_text.emit('Send message:' + Comm.makestr(message[1]))
-                                self._signal_warm.emit((1, '已登录/心跳'))
+                                self._signal_warm.emit((1, '登录/心跳'))
                                 self.ui.pushButton.setText('已上线')
                                 self.ui.menubar.setDisabled(0)
                                 self.ui.lineEdit_2.setDisabled(1)
@@ -146,6 +190,9 @@ class MainWindow(QMainWindow):
 
                             elif message[0] == 1:
                                 self._signal_warm.emit((1, message[1]))
+
+                            elif message[0] == 3:
+                                self._signal_warm.emit((3, message[1]))
                     if self.tctimeClient in exceptional:
                         break
                 except:
@@ -177,6 +224,11 @@ class MainWindow(QMainWindow):
             data_head = time.strftime("%H:%M:%S", local_time)
             self.ui.textEdit.append(data_head)
             self.ui.textEdit.append("<font color=\"#000000\">------------------------</font>")
+        elif text[0] == 3:
+            print(text[1])
+            for x in text[1]:
+                orig_text = "<font color=\"#EE82EE\">{}</font>".format(x)
+                self.ui.textEdit.append(orig_text)
 
     def GetSerialNumber(self):
         SerialNumber = []

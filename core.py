@@ -69,12 +69,21 @@ def F2040():
 
 
 def data_init():
-    global A1,A2
+    global A1, A2
     C = '41'
     Data = '66 01 77 00 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00'
     re_message = C + A1 + A2 + Data.replace(' ', '')
     cs = CS(strto0x(makelist(re_message)))
     return '687200720068' + re_message + cs + '16'
+
+
+def set_test_point():
+    global A1, A2
+    C = '4a'
+    Data = '66 04 72 00 00 01 04 01 03 20 00 FF FF FF 7F 00 00 05 00 00 00 01 05 00 55 23 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00'
+    re_message = C + A1 + A2 + Data.replace(' ', '')
+    cs = CS(strto0x(makelist(re_message)))
+    return '68be00be0068' + re_message + cs + '16', A1, A2
 
 
 def analysis(code):
@@ -122,6 +131,48 @@ def AFN(A1, A2, data):
             x = 'F2040 \n' + '信号强度:' + data[6] + '\n电话号码:' + list2str(data[7:13]) + '\nICCID:' + list2str(data[13:])
             print(x)
             return 1, x
+        if list2str(data[2:6]) == '01010103':
+            list_ = [list2str(data[13:10:-1]), list2str(data[16:13:-1]), list2str(data[19:16:-1]),
+                     list2str(data[22:19:-1]), list2str(data[25:22:-1]), list2str(data[28:25:-1]),
+                     list2str(data[31:28:-1]), list2str(data[34:31:-1]), list2str(data[36:34:-1]),
+                     list2str(data[38:36:-1]), list2str(data[40:38:-1]), list2str(data[42:40:-1]),
+                     list2str(data[44:42:-1]), list2str(data[46:44:-1]), list2str(data[48:46:-1]),
+                     list2str(data[51:48:-1]), list2str(data[54:51:-1]), list2str(data[57:54:-1]),
+                     list2str(data[60:57:-1]), list2str(data[63:60:-1]), list2str(data[66:63:-1]),
+                     list2str(data[69:66:-1]), list2str(data[72:69:-1])
+                     ]
+            print('list', list_)
+            x = ['一类数据F25:', '抄表日期:' + data[10] + '年' + data[9] + '月' + data[8] + '日' + data[7] + '时' + data[6] + '分',
+                 '当前总有功功率:' + add_point(list_[0], 0.0001), '当前A相有功功率:' + add_point(list_[1], 0.0001),
+                 '当前B相有功功率:' + add_point(list_[2], 0.0001), '当前C相有功功率:' + add_point(list_[3], 0.0001),
+                 '当前总无功功率:' + add_point(list_[4], 0.0001), '当前A相无功功率:' + add_point(list_[5], 0.0001),
+                 '当前B相无功功率:' + add_point(list_[6], 0.0001), '当前C相无功功率:' + add_point(list_[7], 0.0001),
+                 '当前总功率因数' + add_point(list_[8], 0.1), '当前A相功率因数' + add_point(list_[9], 0.1),
+                 '当前B相功率因数' + add_point(list_[10], 0.1), '当前C相功率因数' + add_point(list_[11], 0.1),
+                 '当前A相电压' + add_point(list_[12], 0.1), '当前B相电压' + add_point(list_[13], 0.1),
+                 '当前C相电压' + add_point(list_[14], 0.1),
+                 '当前A相电流' + add_point(list_[15], 0.001), '当前B相电流' + add_point(list_[16], 0.001),
+                 '当前C相电流' + add_point(list_[17], 0.001), '当前零序电流' + add_point(list_[18], 0.001),
+                 '当前总视在功率' + add_point(list_[19], 0.0001), '当前A相视在功率' + add_point(list_[20], 0.0001),
+                 '当前B相视在功率' + add_point(list_[21], 0.0001), '当前C相视在功率' + add_point(list_[22], 0.0001)
+                 ]
+            data_ = ['666666', '111111', '222222', '333333', '33333', '22222', '11111', '66666', '0321', '0654', '0987',
+                     '0789', '2233', '2212', '2211', '005300', '005200', '005100', '444444', '055005', '055050',
+                     '055500', '055555']
+            q = 0
+            error_list = []
+            for a in list_:
+                if data_[q] == a:
+                    pass
+                else:
+                    error_list.append(x[q + 1])
+                q += 1
+            print('error_list', error_list)
+            return 3, x
+
+
+def add_point(num, bit):
+    return str(int(num) * bit)
 
 
 def SEQ(num):
